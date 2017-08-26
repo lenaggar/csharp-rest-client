@@ -11,10 +11,21 @@ namespace csharp_rest_client
   {
     static void Main(string[] args)
     {
-      ProcessRepos().Wait();
+      var repositories = ProcessRepositories().Result;
+
+      foreach (var repo in repositories)
+      {
+        Console.WriteLine($"Name: {repo.Name}");
+        Console.WriteLine($"Description: {repo.Description}");
+        Console.WriteLine($"GitHub URL: {repo.GitHubHomeUrl}");
+        Console.WriteLine($"homepage: {repo.Homepage}");
+        Console.WriteLine($"Last Push: {repo.LastPush}");
+        Console.WriteLine($"No. of Watchers: {repo.Watchers}");
+        Console.WriteLine();
+      }
     }
 
-    private static async Task ProcessRepos()
+    private static async Task<List<Repository>> ProcessRepositories()
     {
       var client = new HttpClient();
       client.DefaultRequestHeaders.Accept.Clear();
@@ -24,17 +35,14 @@ namespace csharp_rest_client
       client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
 
       var serializer = new DataContractJsonSerializer(
-        typeof(List<repo>)
+        typeof(List<Repository>)
         );
 
       var streamTask = client.GetStreamAsync("https://api.github.com/orgs/dotnet/repos");
 
-      var repositories = serializer.ReadObject(await streamTask) as List<repo>;
+      var repositories = serializer.ReadObject(await streamTask) as List<Repository>;
 
-      foreach (var repo in repositories)
-      {
-        Console.WriteLine(repo.name);
-      }
+      return repositories;
     }
   }
 }
